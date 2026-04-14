@@ -1,4 +1,3 @@
-%%writefile app.py
 import json
 import re
 import time
