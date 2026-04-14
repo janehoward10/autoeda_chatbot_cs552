@@ -1,3 +1,4 @@
+%%writefile app.py
 import json
 import re
 import time
@@ -600,9 +601,10 @@ def answer_question(question: str, eda_summary: Dict[str, Any], use_llm: bool, c
     if rule_answer and exact_fact_question:
         return rule_answer
 
-    if use_llm and interpretive_question:
-        context = build_chat_context(eda_summary)
-        prompt = f"""
+    if interpretive_question:
+        if use_llm:
+            context = build_chat_context(eda_summary)
+            prompt = f"""
 You are an EDA chatbot.
 
 Use only the context below.
@@ -619,20 +621,20 @@ QUESTION:
 ANSWER:
 """.strip()
 
-        try:
-            llm_answer = generate_text(prompt, max_new_tokens=90).strip()
-            bad_patterns = [
-                "lower_bound:",
-                "upper_bound:",
-                "feature_1:",
-                "feature_2:",
-                "outlier_count:",
-                "missing_count:"
-            ]
-            if llm_answer and not any(p in llm_answer.lower() for p in bad_patterns):
-                return llm_answer
-        except Exception:
-            pass
+            try:
+                llm_answer = generate_text(prompt, max_new_tokens=90).strip()
+                bad_patterns = [
+                    "lower_bound:",
+                    "upper_bound:",
+                    "feature_1:",
+                    "feature_2:",
+                    "outlier_count:",
+                    "missing_count:"
+                ]
+                if llm_answer and not any(p in llm_answer.lower() for p in bad_patterns):
+                    return llm_answer
+            except Exception:
+                pass
 
         return generate_rule_based_report(eda_summary)
 
